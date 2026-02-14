@@ -1,0 +1,48 @@
+:root {
+    --azul-principal: #1a4d8c;
+    --azul-claro: #e3f2fd;
+    --celeste-flotante: #d1ecf1;
+    --amarillo-pastel: #fff9c4;
+    --amarillo-acento: #fcd190;
+    --blanco-fondo: #f8f9fa;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--amarillo-pastel);
+}
+
+.cursor-pointer {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.cursor-pointer:hover {
+    transform: scale(1.05);
+}
+
+.input-busqueda:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.bg-amarillo-pastel {
+    background-color: var(--amarillo-pastel) !important;
+}
+
+.bg-amarillo {
+    background-color: var(--amarillo-acento) !important;
+}
+
+.bg-celeste {
+    background-color: var(--celeste-flotante) !important;
+}
+
+.btn-primary {
+    background-color: var(--azul-principal);
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #153e70;
+}
