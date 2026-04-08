@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro | Hogaranza</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body class="bg-amarillo-pastel d-flex align-items-center" style="height: 100vh;">
+
+    <div class="position-absolute top-0 start-0 p-4">
+        <a class="text-decoration-none d-flex align-items-center text-primary" href="index.html">
+            <span class="fs-3 me-2">(｡ᴖ ⤙ ᴖ)𐂐◯𓇋</span>
+            <h2 class="fw-bold mb-0">Hogaranza</h2>
+        </a>
+    </div>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-5">
+                <div class="card shadow-lg border-0 rounded-4">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-4 text-primary fw-bold">Crear Cuenta</h2>
+                        
+                        <form id="formRegistro">
+                            <div class="mb-3">
+                                <label for="nombre" class="form-label text-secondary fw-bold small">Nombre Completo</label>
+                                <input type="text" class="form-control border-primary shadow-sm rounded-3" id="nombre" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label text-secondary fw-bold small">Correo Electrónico</label>
+                                <input type="email" class="form-control border-primary shadow-sm rounded-3" id="email" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="pais" class="form-label text-secondary fw-bold small">País de Origen</label>
+                                <select id="pais" class="form-select border-primary shadow-sm rounded-3" required>
+                                    <option value="" selected disabled>Selecciona tu país...</option>
+                                    <option value="1">México</option>
+                                    <option value="2">Colombia</option>
+                                    <option value="3">Argentina</option>
+                                    <option value="4">España</option>
+                                    <option value="5">Perú</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="password" class="form-label text-secondary fw-bold small">Contraseña</label>
+                                <input type="password" class="form-control border-primary shadow-sm rounded-3" id="password" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 mb-3 shadow-sm rounded-pill fw-bold py-2">
+                                Registrarse
+                            </button>
+                            
+                            <div id="mensajeError" class="text-danger text-center small fw-bold"></div>
+                        </form>
+
+                        <hr class="my-4 border-secondary">
+                        <p class="text-center mb-0 text-muted">¿Ya tienes una cuenta? <a href="login.html" class="text-primary fw-bold text-decoration-none">Inicia sesión</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/main.js"></script>
+</body>
+</html>
