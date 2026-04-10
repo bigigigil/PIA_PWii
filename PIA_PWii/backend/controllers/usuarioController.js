@@ -1,8 +1,9 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 //const { Usuario } = require('../models');
-const Usuario = require('../models/Usuario'); 
-const logger = require('../utils/logger'); 
+const Usuario = require('../models/Usuario');
+const logger = require('../utils/logger');
+const Pais = require('../models/pais');
 
 exports.registrarUsuario = async (req, res) => {
     try {
@@ -11,7 +12,7 @@ exports.registrarUsuario = async (req, res) => {
         if (!nombre || !email || !password) {
             return res.status(400).json({ error: 'Todos los campos son obligatorios' });
         }
-        
+
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             return res.status(400).json({ error: 'Formato de correo inválido' });
@@ -33,12 +34,12 @@ exports.registrarUsuario = async (req, res) => {
             nombre,
             email,
             password_hash,
-            pais_id: pais_id || null 
+            pais_id: pais_id || null
         });
 
-        res.status(201).json({ 
-            mensaje: 'Usuario registrado exitosamente', 
-            usuario: { id: nuevoUsuario.id, nombre: nuevoUsuario.nombre, email: nuevoUsuario.email } 
+        res.status(201).json({
+            mensaje: 'Usuario registrado exitosamente',
+            usuario: { id: nuevoUsuario.id, nombre: nuevoUsuario.nombre, email: nuevoUsuario.email }
         });
 
     } catch (error) {
@@ -66,9 +67,9 @@ exports.loginUsuario = async (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: usuario.id, email: usuario.email }, 
-            process.env.JWT_SECRET || 'muejeje', 
-            { expiresIn: '2h' } 
+            { id: usuario.id, email: usuario.email },
+            process.env.JWT_SECRET || 'muejeje',
+            { expiresIn: '2h' }
         );
 
         res.status(200).json({
@@ -82,18 +83,28 @@ exports.loginUsuario = async (req, res) => {
     }
 };
 
+
 exports.obtenerPerfil = async (req, res) => {
     try {
-      
         const usuario = await Usuario.findByPk(req.usuario.id, {
-            attributes: ['id', 'nombre', 'email', 'pais_id'] 
+            attributes: ['id', 'nombre', 'email', 'pais_id'],
+            include: {
+                model: Pais,
+                attributes: ['codigo_iso', 'nombre']
+            }
         });
 
         if (!usuario) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
 
-        res.status(200).json(usuario);
+        res.status(200).json({
+            id: usuario.id,
+            nombre: usuario.nombre,
+            email: usuario.email,
+            pais_id: usuario.pais_id,
+            codigo_iso: usuario.Pai?.codigo_iso || null
+        });
 
     } catch (error) {
         logger.error(`Error al obtener perfil: ${error.message}`);
@@ -104,9 +115,9 @@ exports.obtenerPerfil = async (req, res) => {
 exports.actualizarPerfil = async (req, res) => {
     try {
         const { nombre, email, pais_id, password } = req.body;
-        
+
         const usuario = await Usuario.findByPk(req.usuario.id);
-        
+
         if (!usuario) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
