@@ -12,13 +12,10 @@ app.use('/api/paises', paisRoutes);
 
 app.use(cors());
 app.use(express.json());
-<<<<<<< Updated upstream
-=======
-app.use(express.static(rutaFrontend));
+
 app.use('/api/usuarios', require('./routes/usuarioRoutes'));
 
 
->>>>>>> Stashed changes
 
 app.get('/api/prueba', (req, res) => {
     res.json({ mensaje: "si jalooooo" });

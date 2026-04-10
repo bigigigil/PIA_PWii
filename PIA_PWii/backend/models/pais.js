@@ -1,9 +1,5 @@
 const { DataTypes } = require('sequelize');
-<<<<<<< Updated upstream
-const sequelize = require('../config/database');
-=======
 const sequelize = require('../config/database'); 
->>>>>>> Stashed changes
 
 const Pais = sequelize.define('Pais', {
     id: {

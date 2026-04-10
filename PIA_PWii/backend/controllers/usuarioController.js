@@ -12,7 +12,7 @@ exports.registrarUsuario = async (req, res) => {
         if (!nombre || !email || !password) {
             return res.status(400).json({ error: 'Todos los campos son obligatorios' });
         }
-
+        
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             return res.status(400).json({ error: 'Formato de correo inválido' });
@@ -27,6 +27,14 @@ exports.registrarUsuario = async (req, res) => {
             return res.status(409).json({ error: 'El correo ya está registrado' });
         }
 
+        let paisIdReal = null;
+        if (pais_id) {
+            const paisEncontrado = await Pais.findOne({ where: { codigo_iso: pais_id } });
+            if (paisEncontrado) {
+                paisIdReal = paisEncontrado.id;
+            }
+        }
+
         const salt = await bcrypt.genSalt(10);
         const password_hash = await bcrypt.hash(password, salt);
 
@@ -34,13 +42,10 @@ exports.registrarUsuario = async (req, res) => {
             nombre,
             email,
             password_hash,
-            pais_id: pais_id || null
+            pais_id: paisIdReal 
         });
 
-        res.status(201).json({
-            mensaje: 'Usuario registrado exitosamente',
-            usuario: { id: nuevoUsuario.id, nombre: nuevoUsuario.nombre, email: nuevoUsuario.email }
-        });
+        res.status(201).json({ mensaje: 'Usuario registrado exitosamente' });
 
     } catch (error) {
         logger.error(`Error en registro de usuario: ${error.message}`);
