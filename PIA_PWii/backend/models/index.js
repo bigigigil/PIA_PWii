@@ -1,16 +1,19 @@
-const { Sequelize } = require('sequelize');
-const logger = require('../utils/logger');
+const sequelize = require('../config/database');
 
-const sequelize = new Sequelize('hogaranza_pwii', 'root', 'young.KDAY6rati', {
-    host: 'localhost',
-    dialect: 'mysql',
-    logging: msg => logger.info(msg),
-});
+const Usuario = require('./usuario');
+const Sede = require('./sede');
+const Categoria = require('./categoria');
+const Restaurante = require('./restaurante');
 
-const db = {};
-db.Sequelize = Sequelize;
-db.sequelize = sequelize;
+Restaurante.belongsTo(Sede, { foreignKey: 'sede_id', as: 'sede' });
+Sede.hasMany(Restaurante, { foreignKey: 'sede_id' });
 
-db.Usuario = require('./Usuario')(sequelize, Sequelize);
+const db = {
+  sequelize,
+  Usuario,
+  Sede,
+  Categoria,
+  Restaurante
+};
 
 module.exports = db;

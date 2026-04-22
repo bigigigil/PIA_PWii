@@ -6,10 +6,11 @@ const app = express();
 
 const rutaFrontend = path.join(__dirname, '../frontend');
 const paisRoutes = require('./routes/paisRoutes');
+const restauranteRoutes = require('./routes/restauranteRoutes');
 
 app.use(express.static(rutaFrontend));
 app.use('/api/paises', paisRoutes);
-
+app.use('/api/restaurantes', restauranteRoutes);
 app.use(cors());
 app.use(express.json());
 
