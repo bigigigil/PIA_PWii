@@ -387,4 +387,76 @@ function cerrarSesion() {
     localStorage.removeItem('hogaranza_token');
     window.location.href = 'perfil.html';
 }
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+
+let map;
+let marcadoresActuales = []; 
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    map = new maplibregl.Map({
+        container: 'map', 
+        style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json', 
+        center: [-100.31517827634526, 25.72567559696439],
+        zoom: 12
+    });
+
+    cargarPinesEnMapa('/api/restaurantes');
+});
+
+async function cargarPinesEnMapa(url) {
+    try {
+        marcadoresActuales.forEach(marcador => marcador.remove());
+        marcadoresActuales = []; 
+        const respuesta = await fetch(url);
+        const restaurantes = await respuesta.json();
+
+        restaurantes.forEach(restaurante => {
+
+            const coordenadas = [restaurante.longitud, restaurante.latitud];
+
+            const popup = new maplibregl.Popup({ offset: 25 }).setHTML(`
+                <div class="text-center p-1">
+                    <h6 class="fw-bold text-primary mb-1">${restaurante.nombre}</h6>
+                    <p class="small text-muted mb-2">${restaurante.direccion}</p>
+                    <button class="btn btn-sm btn-outline-primary w-100 rounded-pill" 
+                            data-bs-toggle="modal" data-bs-target="#restauranteModal">
+                        Ver detalles
+                    </button>
+                </div>
+            `);
+
+            const marcador = new maplibregl.Marker({ color: "#1a4d8c" })
+                .setLngLat(coordenadas)
+                .setPopup(popup)
+                .addTo(map);
+
+            marcadoresActuales.push(marcador);
+        });
+
+        if (restaurantes.length > 0) {
+            map.flyTo({
+                center: [restaurantes[0].longitud, restaurantes[0].latitud],
+                zoom: 13
+            });
+        }
+
+    } catch (error) {
+        console.error("Error al cargar los pines:", error);
+    }
+}
+
+function buscarPuentes() {
+  
+    const pais_id = document.getElementById('nacionalidad').value;
+    const picoso = document.getElementById('picoso').checked;
+    const vegetariano = document.getElementById('vegetariano').checked;
+    const dulce = document.getElementById('dulce').checked;
+
+    const urlFiltro = `/api/restaurantes/filtrar?pais=${pais_id}&picoso=${picoso}&vegetariano=${vegetariano}&dulce=${dulce}`;
+
+    cargarPinesEnMapa(urlFiltro);
+}
 >>>>>>> Stashed changes
