@@ -57,7 +57,7 @@ async function cargarOpcionesBuscadoresPerfil() {
             paises.sort((a, b) => a.translations.spa.common.localeCompare(b.translations.spa.common));
             const dlPaises = document.getElementById('datalist-paises');
             dlPaises.innerHTML = '';
-            
+
             paises.forEach(pais => {
                 const option = document.createElement('option');
                 option.value = pais.translations.spa.common;
@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const inputVal = document.getElementById('buscador-platillos-perfil').value;
                         const dl = document.getElementById('datalist-platillos');
                         const option = Array.from(dl.options).find(opt => opt.value === inputVal);
-                        
+
                         if (!option) {
                             alert("Por favor selecciona un platillo de la lista.");
                             return;
@@ -238,11 +238,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                             });
                             if (res.ok) {
                                 document.getElementById('buscador-platillos-perfil').value = '';
-                                window.location.reload(); 
+                                window.location.reload();
                             } else {
                                 alert("Error al agregar platillo.");
                             }
-                        } catch(e) { console.error(e); }
+                        } catch (e) { console.error(e); }
                     });
                 }
 
@@ -252,27 +252,27 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const inputVal = document.getElementById('buscador-paises-perfil').value;
                         const dl = document.getElementById('datalist-paises');
                         const option = Array.from(dl.options).find(opt => opt.value === inputVal);
-                        
+
                         if (!option) {
                             alert("Por favor selecciona un país de la lista.");
                             return;
                         }
 
                         const codigoIso = option.getAttribute('data-iso');
-                        
+
                         try {
                             const res = await fetch(`http://localhost:3000/api/usuarios/favoritos/paises/iso/${codigoIso}`, {
                                 method: 'POST',
                                 headers: { 'Authorization': `Bearer ${token}` }
                             });
-                            
+
                             if (res.ok) {
                                 document.getElementById('buscador-paises-perfil').value = '';
                                 window.location.reload();
                             } else {
                                 alert("Error al agregar país.");
                             }
-                        } catch(e) { console.error(e); }
+                        } catch (e) { console.error(e); }
                     });
                 }
                 const contenedorUltima = document.getElementById('contenedor-ultima-resena');
@@ -466,6 +466,9 @@ async function cargarPinesEnMapa(url) {
             return;
         }
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const restauranteDestacado = urlParams.get('restaurante');
+
         restaurantes.forEach(restaurante => {
             const coordenadas = [restaurante.longitud, restaurante.latitud];
 
@@ -475,10 +478,19 @@ async function cargarPinesEnMapa(url) {
 
             marcador.getElement().style.cursor = 'pointer';
 
-            marcador.getElement().addEventListener('click', async () => {
+            const clickEvent = async (e) => {
+                if (e) e.stopPropagation(); 
 
                 document.getElementById('modal-nombre').innerText = restaurante.nombre;
                 document.getElementById('btnAbrirAgregarPlatillo').setAttribute('data-id', restaurante.id);
+
+                let textoRating = "  ★ Nuevo";
+                if (restaurante.resenas && restaurante.resenas.length > 0) {
+                    const suma = restaurante.resenas.reduce((acc, curr) => acc + curr.calificacion_estrellas, 0);
+                    const promedio = (suma / restaurante.resenas.length).toFixed(1);
+                    textoRating = `  ★ ${promedio} (${restaurante.resenas.length})`;
+                }
+                document.getElementById('modal-rating').innerText = textoRating;
 
                 const btnFavorito = document.getElementById('btnFavorito');
                 btnFavorito.setAttribute('data-id', restaurante.id);
@@ -502,17 +514,13 @@ async function cargarPinesEnMapa(url) {
                                 btnFavorito.classList.add('btn-danger');
                             }
                         }
-                    } catch (e) { console.error("Error verificando favoritos", e); }
+                    } catch (err) { console.error("Error verificando favoritos", err); }
                 }
-
 
                 const listaPlatillos = document.getElementById('modal-lista-platillos');
                 listaPlatillos.innerHTML = '';
-                let textoRating = " ★ Nuevo";
+                
                 if (restaurante.menu && restaurante.menu.length > 0) {
-                    const suma = restaurante.resenas.reduce((acc, curr) => acc + curr.calificacion_estrellas, 0);
-                    const promedio = (suma / restaurante.resenas.length).toFixed(1);
-                    textoRating = ` ★ ${promedio} (${restaurante.resenas.length} reseñas)`;
                     const menuAgrupado = {};
                     restaurante.menu.forEach(platillo => {
                         const nombreCategoria = (platillo.categorias && platillo.categorias.length > 0)
@@ -522,6 +530,7 @@ async function cargarPinesEnMapa(url) {
                         if (!menuAgrupado[nombreCategoria]) menuAgrupado[nombreCategoria] = [];
                         menuAgrupado[nombreCategoria].push(platillo);
                     });
+
                     for (const [categoria, platillos] of Object.entries(menuAgrupado)) {
                         const tituloSeccion = document.createElement('h6');
                         tituloSeccion.className = 'fw-bold text-primary mt-4 mb-2 border-bottom border-primary pb-1';
@@ -535,7 +544,6 @@ async function cargarPinesEnMapa(url) {
 
                             const li = document.createElement('li');
                             li.className = 'list-group-item px-2 bg-transparent d-flex justify-content-between align-items-start mb-1 border-0';
-
                             li.innerHTML = `
                                 <div>
                                     <strong class="text-dark">${platillo.nombre}</strong> ${bandera}<br>
@@ -555,40 +563,17 @@ async function cargarPinesEnMapa(url) {
                 const modalElement = document.getElementById('restauranteModal');
                 const modalInstancia = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
                 modalInstancia.show();
-            });
-
-            marcadoresActuales.push(marcador);
-        });
-
-        if (restaurantes.length > 0) {
-            map.flyTo({
-                center: [restaurantes[restaurantes.length - 1].longitud, restaurantes[restaurantes.length - 1].latitud],
-                zoom: 13
-            });
-        }
-        restaurantes.forEach(restaurante => {
-            const coordenadas = [restaurante.longitud, restaurante.latitud];
-
-            const marcador = new maplibregl.Marker({ color: "#1a4d8c" })
-                .setLngLat(coordenadas)
-                .addTo(map);
-
-            marcador.getElement().style.cursor = 'pointer';
-
+            }; 
             marcador.getElement().addEventListener('click', clickEvent);
             marcadoresActuales.push(marcador);
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const restauranteDestacado = urlParams.get('restaurante');
-
             if (restauranteDestacado && restaurante.id.toString() === restauranteDestacado) {
                 map.flyTo({ center: coordenadas, zoom: 15 });
-                setTimeout(clickEvent, 500); 
+                setTimeout(() => clickEvent(null), 500); 
             }
         });
 
-        const urlParams = new URLSearchParams(window.location.search);
-        if (restaurantes.length > 0 && !urlParams.get('restaurante')) {
+        if (restaurantes.length > 0 && !restauranteDestacado) {
             map.flyTo({
                 center: [restaurantes[restaurantes.length - 1].longitud, restaurantes[restaurantes.length - 1].latitud],
                 zoom: 13
@@ -600,22 +585,26 @@ async function cargarPinesEnMapa(url) {
 }
 
 
-
 function buscarPuentes() {
-    const paisIso = document.getElementById('nacionalidad').value;
-    const busqueda = document.getElementById('site-search').value;
+    const paisIso = document.getElementById('nacionalidad') ? document.getElementById('nacionalidad').value : '';
+    const busqueda = document.getElementById('site-search') ? document.getElementById('site-search').value : '';
 
     const checkboxes = document.querySelectorAll('.filtro-categoria:checked');
     const categoriasIds = Array.from(checkboxes).map(cb => cb.value).join(',');
 
     let urlFiltro = `http://localhost:3000/api/restaurantes/filtrar?`;
+    let parametros = [];
 
-    if (paisIso) urlFiltro += `pais=${paisIso}&`;
-    if (busqueda) urlFiltro += `q=${encodeURIComponent(busqueda)}&`;
-    if (categoriasIds) urlFiltro += `categorias=${categoriasIds}&`;
+    if (paisIso) parametros.push(`pais=${paisIso}`);
+    if (busqueda) parametros.push(`q=${encodeURIComponent(busqueda)}`);
+    if (categoriasIds) parametros.push(`categorias=${categoriasIds}`);
 
-    urlFiltro = urlFiltro.slice(0, -1);
-    cargarPinesEnMapa(urlFiltro);
+    if (parametros.length > 0) {
+        urlFiltro += parametros.join('&');
+        cargarPinesEnMapa(urlFiltro);
+    } else {
+        cargarPinesEnMapa('http:.localhost:3000/api/restaurantes');
+    }
 }
 const formRegistro = document.getElementById('formRegistro');
 if (formRegistro) {
@@ -903,4 +892,21 @@ if (formAgregarResena) {
             mensajeDiv.innerText = "Error de conexión";
         }
     });
+}
+
+function limpiarFiltros() {
+    const inputSearch = document.getElementById('site-search');
+    if (inputSearch) inputSearch.value = '';
+
+    const selectNacionalidad = document.getElementById('nacionalidad');
+    if (selectNacionalidad) selectNacionalidad.value = '';
+
+    const checkboxes = document.querySelectorAll('.filtro-categoria:checked');
+    checkboxes.forEach(cb => cb.checked = false);
+
+    if (window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    cargarPinesEnMapa('http://localhost:3000/api/restaurantes');
 }

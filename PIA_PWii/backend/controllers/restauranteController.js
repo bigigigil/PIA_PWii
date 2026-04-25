@@ -31,17 +31,15 @@ const filtrarRestaurantes = async (req, res) => {
     try {
         const { pais, q, categorias } = req.query;
 
-        let condicionesRestaurante = {};
-        if (q) {
-            condicionesRestaurante = {
-                nombre: { [Op.like]: `%${q}%` }
-            };
-        }
+        let whereRestaurante = {};
 
-        let condicionesPlatillo = {};
-        if (pais) {
-            const paisEncontrado = await Pais.findOne({ where: { codigo_iso: pais } });
-            if (paisEncontrado) condicionesPlatillo.pais_origen_id = paisEncontrado.id;
+        if (q) {
+            whereRestaurante = {
+                [Op.or]: [
+                    { nombre: { [Op.like]: `%${q}%` } },
+                    { '$menu.nombre$': { [Op.like]: `%${q}%` } } 
+                ]
+            };
         }
 
         let includeCategorias = {
@@ -51,41 +49,53 @@ const filtrarRestaurantes = async (req, res) => {
         };
 
         if (categorias) {
-            const arrayCategoriasIds = categorias.split(',').map(id => parseInt(id, 10));
-            includeCategorias.where = {
-                id: {
-                    [Op.in]: arrayCategoriasIds
-                }
-            };
+            const ids = categorias.split(',').map(id => parseInt(id, 10));
+            includeCategorias.where = { id: { [Op.in]: ids } };
             includeCategorias.required = true;
         }
 
+        let includePaisPlatillo = {
+            model: Pais,
+            as: 'pais',
+            attributes: ['codigo_iso']
+        };
+
+        if (pais) {
+            const paisData = await Pais.findOne({ where: { codigo_iso: pais } });
+            if (paisData) {
+                includePaisPlatillo.where = { id: paisData.id };
+                includePaisPlatillo.required = true;
+            }
+        }
+
         const restaurantes = await Restaurante.findAll({
-            where: condicionesRestaurante,
-            include: [{
-                model: Platillo,
-                as: 'menu',
-                where: Object.keys(condicionesPlatillo).length > 0 ? condicionesPlatillo : undefined,
-                required: Object.keys(condicionesPlatillo).length > 0 || categorias !== undefined,
-                attributes: ['id', 'nombre', 'descripcion'],
-                through: { attributes: ['precio'] },
-                include: [
-                    {
-                        model: Pais,
-                        as: 'pais',
-                        attributes: ['codigo_iso']
-                    },
-                    includeCategorias
-                ]
-            }]
+            where: whereRestaurante,
+            include: [
+                {
+                    model: Platillo,
+                    as: 'menu',
+                    attributes: ['id', 'nombre', 'descripcion'],
+                    through: { attributes: ['precio'] },
+                    include: [
+                        includePaisPlatillo, 
+                        includeCategorias
+                    ]
+                },
+                {
+                    model: Resena,
+                    as: 'resenas',
+                    attributes: ['calificacion_estrellas']
+                }
+            ],
+            subQuery: false 
         });
+
         res.json(restaurantes);
     } catch (error) {
         console.error('Error al filtrar:', error);
         res.status(500).json({ error: 'Error en el servidor al filtrar' });
     }
 };
-
 const crearRestaurante = async (req, res) => {
     try {
         const { nombre, latitud, longitud, sede_id } = req.body;
@@ -138,7 +148,7 @@ const agregarPlatillo = async (req, res) => {
 const agregarResena = async (req, res) => {
     try {
         const restaurante_id = req.params.id;
-        const usuario_id = req.usuario.id; 
+        const usuario_id = req.usuario.id;
         const { calificacion_estrellas, comentario } = req.body;
 
         const nuevaResena = await Resena.create({
