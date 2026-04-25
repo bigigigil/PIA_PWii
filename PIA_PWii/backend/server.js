@@ -7,12 +7,17 @@ const app = express();
 const rutaFrontend = path.join(__dirname, '../frontend');
 const paisRoutes = require('./routes/paisRoutes');
 const restauranteRoutes = require('./routes/restauranteRoutes');
+const categoriaRoutes = require('./routes/categoriaRoutes');
+
+app.use(cors()); 
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static(rutaFrontend));
 app.use('/api/paises', paisRoutes);
 app.use('/api/restaurantes', restauranteRoutes);
-app.use(cors());
-app.use(express.json());
+app.use('/api/categorias', categoriaRoutes);
+
 
 app.use('/api/usuarios', require('./routes/usuarioRoutes'));
 

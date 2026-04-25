@@ -26,19 +26,23 @@
                     </select>
 
                     <label class="form-label small fw-bold text-primary">Preferencia de Sabor</label>
-                    <div class="bg-amarillo-pastel p-3 rounded-3 border mb-4 shadow-sm">
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" id="picoso">
-                            <label class="form-check-label text-secondary">Picoso</label>
+                    <label class="form-label small fw-bold text-primary mt-3">Categorías de Comida</label>
+                    <div class="bg-amarillo-pastel p-3 rounded-3 border mb-3 shadow-sm">
+
+                        <div id="contenedor-categorias" style="max-height: 150px; overflow-y: auto;">
+                            <span class="text-muted small">Cargando categorías...</span>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="vegetariano">
-                            <label class="form-check-label text-secondary">Vegetariano</label>
+
+                        <hr class="my-2">
+
+                        <div class="input-group input-group-sm">
+                            <input type="text" id="nuevaCategoriaInput" class="form-control"
+                                placeholder="Ej. Vegano, Postres...">
+                            <button class="btn btn-outline-primary" type="button"
+                                onclick="agregarNuevaCategoria()">+</button>
                         </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" id="dulce">
-                            <label class="form-check-label text-secondary">Dulce</label>
-                        </div>
+                        <div id="msgCategoria" class="small mt-1 text-center"></div>
+
                     </div>
 
                     <button class="btn btn-primary w-100 py-2 shadow-sm rounded-pill fw-bold" onclick="buscarPuentes()">
@@ -49,20 +53,29 @@
 
             <div class="col-md-9 position-relative p-0">
 
-                <div class="position-absolute top-0 start-50 translate-middle-x mt-4 z-3 w-50 bg-celeste rounded-pill shadow p-2 d-flex align-items-center">
-                    <form action="#" method="get" class="d-flex w-100 align-items-center m-0">
+                <div
+                    class="position-absolute top-0 start-50 translate-middle-x mt-4 z-3 w-50 bg-celeste rounded-pill shadow p-2 d-flex align-items-center">
+                    <form class="d-flex w-100 align-items-center m-0"
+                        onsubmit="event.preventDefault(); buscarPuentes();">
                         <span class="ms-3 me-2 fs-5">🔍︎</span>
-                        <input type="search" id="site-search" name="q" class="form-control border-0 bg-transparent input-busqueda" placeholder="¿Qué vamos a comer? 𓌉ς(•𐃷•)っ𓇋" aria-label="Search" />
-                        <button type="submit" class="btn btn-primary rounded-pill px-4">Buscar</button>
+                        <input type="search" id="site-search"
+                            class="form-control border-0 bg-transparent input-busqueda"
+                            placeholder="¿Qué vamos a comer? 𓌉ς(•𐃷•)っ𓇋" />
+                        <button type="button" onclick="buscarPuentes()"
+                            class="btn btn-primary rounded-pill px-4">Buscar</button>
                     </form>
                 </div>
 
-                <div class="position-absolute top-0 end-0 mt-4 me-4 z-3 bg-celeste rounded-pill shadow p-1 d-flex align-items-center cursor-pointer">
+                <div
+                    class="position-absolute top-0 end-0 mt-4 me-4 z-3 bg-celeste rounded-pill shadow p-1 d-flex align-items-center cursor-pointer">
                     <a href="login.html" id="enlacePerfil" class="text-decoration-none d-flex align-items-center">
-                        <img id="imgPerfil" src="https://ui-avatars.com/api/?name=Invitado&background=1a4d8c&color=fff&rounded=true" alt="Perfil" width="45" height="45" class="rounded-circle">
+                        <img id="imgPerfil"
+                            src="https://ui-avatars.com/api/?name=Invitado&background=1a4d8c&color=fff&rounded=true"
+                            alt="Perfil" width="45" height="45" class="rounded-circle">
                         <div class="ms-2 me-3 d-none d-md-block text-dark">
                             <span id="nombrePerfil" class="fw-bold d-block lh-1 mt-1">Iniciar Sesión</span>
-                            <span id="textoSecundarioPerfil" class="small text-muted d-block mt-1" style="font-size: 0.8rem;">
+                            <span id="textoSecundarioPerfil" class="small text-muted d-block mt-1"
+                                style="font-size: 0.8rem;">
                                 Únete a Hogaranza
                             </span>
                         </div>
@@ -70,18 +83,21 @@
                 </div>
 
                 <div id="map" style="width: 100%; height: 100%; background-color: #e5e5e5;"></div>
-                
-            </div> </div>
+
+            </div>
+        </div>
     </div>
 
     <div class="modal fade" id="restauranteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 border-0 shadow">
-                <div style="height: 150px; background-color: #1a4d8c; border-radius: 1rem 1rem 0 0;" class="position-relative">
-                    <span id="modal-rating" class="badge bg-warning text-dark position-absolute bottom-0 start-0 m-3 shadow"></span>
+                <div style="height: 150px; background-color: #1a4d8c; border-radius: 1rem 1rem 0 0;"
+                    class="position-relative">
+                    <span id="modal-rating"
+                        class="badge bg-warning text-dark position-absolute bottom-0 start-0 m-3 shadow"></span>
                 </div>
                 <div class="modal-body p-4 bg-amarillo-pastel">
-                    <h4 id="modal-nombre" class="fw-bold text-primary mb-1">tacos "el Pro" </h4> 
+                    <h4 id="modal-nombre" class="fw-bold text-primary mb-1">tacos "el Pro" </h4>
                     <img src="https://flagsapi.com/MX/flat/24.png" class="me-2" alt="MX">
 
                     <p id="modal-ubicacion" class="text-muted small mb-3"> Ubicación</p>
@@ -89,16 +105,111 @@
                     <h6 class="fw-bold mt-3">Platillos Destacados:</h6>
                     <ul id="modal-lista-platillos" class="list-group list-group-flush mb-3 rounded-3 shadow-sm">
                     </ul>
+                    <h6 class="fw-bold mt-3">Platillos Destacados:</h6>
+                    <ul id="modal-lista-platillos" class="list-group list-group-flush mb-3 rounded-3 shadow-sm">
+                    </ul>
 
+                    <button class="btn btn-success w-100 rounded-pill mb-2 fw-bold" id="btnAbrirAgregarPlatillo">
+                        + Añadir Platillo al Menú
+                    </button>
                     <button class="btn btn-outline-primary w-100 rounded-pill">calificar</button>
                 </div>
             </div>
         </div>
     </div>
+    <div class="modal fade" id="agregarRestauranteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header bg-primary text-white" style="border-radius: 1rem 1rem 0 0;">
+                    <h5 class="modal-title fw-bold">📍 Agregar Restaurante</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <form id="formAgregarRestaurante">
+                    <div class="modal-body p-4 bg-amarillo-pastel">
+                        <p class="small text-muted mb-3 text-center">
+                            Coordenadas: <span id="coordDisplay" class="fw-bold text-dark"></span>
+                        </p>
+                        <input type="hidden" id="addLat">
+                        <input type="hidden" id="addLng">
 
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-primary">Nombre del Restaurante</label>
+                            <input type="text" class="form-control rounded-pill border-primary" id="addNombre" required
+                                placeholder="Ej. Tacos El Rey">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-primary">Sede</label>
+                            <select class="form-select rounded-pill border-primary" id="addSede" required>
+                                <option value="1">Ciudad de México</option>
+                                <option value="2">Monterrey</option>
+                                <option value="3">Guadalajara</option>
+                            </select>
+                        </div>
+                        <div id="addMensaje" class="text-center mt-2"></div>
+                    </div>
+                    <div class="modal-footer border-0 bg-amarillo-pastel" style="border-radius: 0 0 1rem 1rem;">
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold shadow-sm">Guardar
+                            Restaurante</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="agregarPlatilloModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header bg-success text-white" style="border-radius: 1rem 1rem 0 0;">
+                    <h5 class="modal-title fw-bold">🍽️ Añadir Platillo al Menú</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <form id="formAgregarPlatillo">
+                    <div class="modal-body p-4 bg-amarillo-pastel">
+                        <input type="hidden" id="platilloRestauranteId">
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-success">Nombre del Platillo</label>
+                            <input type="text" class="form-control rounded-pill border-success" id="platilloNombre"
+                                required placeholder="Ej. Pizza Margarita">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-success">Descripción</label>
+                            <textarea class="form-control rounded-4 border-success" id="platilloDesc" rows="2"
+                                placeholder="Ingredientes principales..."></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label small fw-bold text-success">Precio ($)</label>
+                                <input type="number" step="0.01" class="form-control rounded-pill border-success"
+                                    id="platilloPrecio" required placeholder="0.00">
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label small fw-bold text-success">País de Origen</label>
+                                <select class="form-select rounded-pill border-success" id="platilloPais"
+                                    required></select>
+                            </div>
+                        </div>
+
+                        <div id="msgPlatillo" class="text-center mt-2"></div>
+                    </div>
+                    <div class="modal-footer border-0 bg-amarillo-pastel" style="border-radius: 0 0 1rem 1rem;">
+                        <button type="button" class="btn btn-secondary rounded-pill fw-bold shadow-sm"
+                            data-bs-target="#restauranteModal" data-bs-toggle="modal">Volver</button>
+                        <button type="submit" class="btn btn-success rounded-pill fw-bold shadow-sm px-4">Guardar
+                            Platillo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
     <script src="./js/main.js?v=2"></script>
 
 </body>
+
 </html>
