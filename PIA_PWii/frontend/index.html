@@ -88,19 +88,23 @@
         </div>
     </div>
 
-   <div class="modal fade" id="restauranteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="restauranteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 border-0 shadow">
                 <div style="height: 150px; background-color: #1a4d8c; border-radius: 1rem 1rem 0 0;"
                     class="position-relative d-flex justify-content-between p-3">
-                    
-                    <button type="button" class="btn-close btn-close-white align-self-start" data-bs-dismiss="modal" aria-label="Close"></button>
 
-                    <button id="btnFavorito" class="btn btn-light rounded-circle  d-flex align-items-center justify-content-center align-self-start" style="width: 40px; height: 40px; border: none; background: rgba(255, 255, 255, 0.8);">
+                    <button type="button" class="btn-close btn-close-white align-self-start" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+
+                    <button id="btnFavorito"
+                        class="btn btn-light rounded-circle  d-flex align-items-center justify-content-center align-self-start"
+                        style="width: 40px; height: 40px; border: none; background: rgba(255, 255, 255, 0.8);">
                         <span class="fs-4" id="iconoCorazon">♡</span>
                     </button>
 
-                    <span id="modal-rating" class="badge bg-warning text-dark position-absolute bottom-0 start-0 m-3 shadow"></span>
+                    <span id="modal-rating"
+                        class="badge bg-warning text-dark position-absolute bottom-0 start-0 m-3 shadow"></span>
                 </div>
 
                 <div class="modal-body p-4 bg-amarillo-pastel">
@@ -108,7 +112,7 @@
 
                     <h6 class="fw-bold mt-3">Platillos Destacados:</h6>
                     <ul id="modal-lista-platillos" class="list-group list-group-flush mb-3 rounded-3 ">
-                        </ul>
+                    </ul>
 
                     <button class="btn btn-success w-100 rounded-pill mb-2 fw-bold" id="btnAbrirAgregarPlatillo">
                         + Añadir Platillo al Menú
@@ -182,6 +186,12 @@
                                 placeholder="Ingredientes principales..."></textarea>
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-success">Categoría del Platillo</label>
+                            <select class="form-select rounded-pill border-success" id="platilloCategoria" required>
+                                <option value="" selected disabled>Cargando categorías...</option>
+                            </select>
+                        </div>
                         <div class="row">
                             <div class="col-6 mb-3">
                                 <label class="form-label small fw-bold text-success">Precio ($)</label>

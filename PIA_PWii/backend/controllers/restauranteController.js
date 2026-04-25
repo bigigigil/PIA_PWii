@@ -1,19 +1,18 @@
 const { Op } = require('sequelize');
-const { Restaurante, Platillo, MenuRestaurante, Pais } = require('../models');
+const { Restaurante, Platillo, MenuRestaurante, Pais, Categoria } = require('../models');
 
 const obtenerTodos = async (req, res) => {
-    try {
+    try {  
         const restaurantes = await Restaurante.findAll({
             include: [{
                 model: Platillo,
                 as: 'menu',
                 attributes: ['id', 'nombre', 'descripcion'],
                 through: { attributes: ['precio'] },
-                include: [{
-                    model: Pais,
-                    as: 'pais',
-                    attributes: ['codigo_iso']
-                }]
+                include: [
+                    { model: Pais, as: 'pais', attributes: ['codigo_iso'] },
+                    { model: Categoria, as: 'categorias', attributes: ['id', 'nombre'] }
+                ]
             }]
         });
         res.json(restaurantes);
@@ -40,20 +39,39 @@ const filtrarRestaurantes = async (req, res) => {
             if (paisEncontrado) condicionesPlatillo.pais_origen_id = paisEncontrado.id;
         }
 
+        let includeCategorias = {
+             model: Categoria, 
+             as: 'categorias', 
+             attributes: ['id', 'nombre'] 
+        };
+
+        if (categorias) {
+            const arrayCategoriasIds = categorias.split(',').map(id => parseInt(id, 10));
+            includeCategorias.where = {
+                id: {
+                    [Op.in]: arrayCategoriasIds
+                }
+            };
+            includeCategorias.required = true;
+        }
+
         const restaurantes = await Restaurante.findAll({
             where: condicionesRestaurante,
             include: [{
                 model: Platillo,
                 as: 'menu',
                 where: Object.keys(condicionesPlatillo).length > 0 ? condicionesPlatillo : undefined,
-                required: Object.keys(condicionesPlatillo).length > 0,
+                required: Object.keys(condicionesPlatillo).length > 0 || categorias !== undefined,
                 attributes: ['id', 'nombre', 'descripcion'],
                 through: { attributes: ['precio'] },
-                include: [{
-                    model: Pais,
-                    as: 'pais',
-                    attributes: ['codigo_iso']
-                }]
+                include: [
+                    {
+                        model: Pais,
+                        as: 'pais',
+                        attributes: ['codigo_iso']
+                    },
+                    includeCategorias 
+                ]
             }]
         });
         res.json(restaurantes);
@@ -99,6 +117,11 @@ const agregarPlatillo = async (req, res) => {
             platillo_id: nuevoPlatillo.id,
             precio: precio ? parseFloat(precio) : 0
         });
+
+        const { categoria_id } = req.body;
+        if (categoria_id) {
+            await nuevoPlatillo.addCategorias([categoria_id]);
+        }
 
         res.status(201).json({ message: "¡Añadido con éxito!" });
     } catch (error) {

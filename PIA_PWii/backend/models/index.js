@@ -16,6 +16,8 @@ Restaurante.belongsToMany(Platillo, { through: MenuRestaurante, foreignKey: 'res
 Platillo.belongsToMany(Restaurante, { through: MenuRestaurante, foreignKey: 'platillo_id' });
 
 Platillo.belongsTo(Pais, { foreignKey: 'pais_origen_id', as: 'pais' });
+Platillo.belongsToMany(Categoria, { through: 'Platillo_Categoria', foreignKey: 'platillo_id', as: 'categorias' });
+Categoria.belongsToMany(Platillo, { through: 'Platillo_Categoria', foreignKey: 'categoria_id' });
 Pais.hasMany(Platillo, { foreignKey: 'pais_origen_id' });
 
 Usuario.belongsTo(Pais, { foreignKey: 'pais_id', as: 'pais' });

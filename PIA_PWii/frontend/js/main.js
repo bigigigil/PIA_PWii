@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const listaRestaurantes = document.getElementById('lista-restaurantes-favoritos');
 
                 if (listaRestaurantes) {
-                    listaRestaurantes.innerHTML = ''; 
+                    listaRestaurantes.innerHTML = '';
 
                     if (usuario.restaurantesFavoritos && usuario.restaurantesFavoritos.length > 0) {
                         usuario.restaurantesFavoritos.forEach((restaurante, index) => {
@@ -276,15 +276,15 @@ async function cargarPinesEnMapa(url) {
 
             marcador.getElement().style.cursor = 'pointer';
 
-           marcador.getElement().addEventListener('click', async () => {
+            marcador.getElement().addEventListener('click', async () => {
 
                 document.getElementById('modal-nombre').innerText = restaurante.nombre;
                 document.getElementById('btnAbrirAgregarPlatillo').setAttribute('data-id', restaurante.id);
-                
+
                 const btnFavorito = document.getElementById('btnFavorito');
                 btnFavorito.setAttribute('data-id', restaurante.id);
                 const iconoCorazon = document.getElementById('iconoCorazon');
-                iconoCorazon.innerText = '♡'; 
+                iconoCorazon.innerText = '♡';
                 btnFavorito.classList.remove('btn-danger');
                 btnFavorito.classList.add('btn-light');
 
@@ -306,37 +306,49 @@ async function cargarPinesEnMapa(url) {
                     } catch (e) { console.error("Error verificando favoritos", e); }
                 }
 
-               
+
                 const listaPlatillos = document.getElementById('modal-lista-platillos');
                 listaPlatillos.innerHTML = '';
 
                 if (restaurante.menu && restaurante.menu.length > 0) {
 
+                    const menuAgrupado = {};
                     restaurante.menu.forEach(platillo => {
-                        const precio = platillo.MenuRestaurante && platillo.MenuRestaurante.precio
-                            ? `$${platillo.MenuRestaurante.precio}`
-                            : 'Precio variable';
+                        const nombreCategoria = (platillo.categorias && platillo.categorias.length > 0)
+                            ? platillo.categorias[0].nombre
+                            : 'Especialidades de la Casa';
 
-                        const li = document.createElement('li');
-                        li.className = 'list-group-item px-3 bg-celeste d-flex justify-content-between align-items-center mb-2  rounded-3 border-0';
-
-                        li.innerHTML = `
-                            <div>
-                                <strong>🍽️ ${platillo.nombre}</strong> <br>
-                                <small class="text-muted">${platillo.descripcion || 'Especialidad de la casa'}</small>
-                            </div>
-                            <div class="text-end">
-                                <span class="badge bg-primary rounded-pill fs-6">${precio}</span>
-                            </div>
-                        `;
-                        listaPlatillos.appendChild(li);
+                        if (!menuAgrupado[nombreCategoria]) menuAgrupado[nombreCategoria] = [];
+                        menuAgrupado[nombreCategoria].push(platillo);
                     });
+                    for (const [categoria, platillos] of Object.entries(menuAgrupado)) {
+                        const tituloSeccion = document.createElement('h6');
+                        tituloSeccion.className = 'fw-bold text-primary mt-4 mb-2 border-bottom border-primary pb-1';
+                        tituloSeccion.innerHTML = `‧₊˚ 𓇋 ${categoria} 𐂐⋆.˚`;
+                        listaPlatillos.appendChild(tituloSeccion);
 
+                        platillos.forEach(platillo => {
+                            const precio = platillo.MenuRestaurante && platillo.MenuRestaurante.precio
+                                ? `$${platillo.MenuRestaurante.precio}` : 'Variable';
+                            const bandera = platillo.pais ? `<img src="https://flagsapi.com/${platillo.pais.codigo_iso}/flat/24.png" title="${platillo.pais.codigo_iso}">` : '';
+
+                            const li = document.createElement('li');
+                            li.className = 'list-group-item px-2 bg-transparent d-flex justify-content-between align-items-start mb-1 border-0';
+
+                            li.innerHTML = `
+                                <div>
+                                    <strong class="text-dark">${platillo.nombre}</strong> ${bandera}<br>
+                                    <small class="text-muted" style="font-size: 0.8rem;">${platillo.descripcion || ''}</small>
+                                </div>
+                                <div class="text-end ms-2">
+                                    <span class="text-success fw-bold">${precio}</span>
+                                </div>
+                            `;
+                            listaPlatillos.appendChild(li);
+                        });
+                    }
                 } else {
-                    listaPlatillos.innerHTML = `
-                        <li class="list-group-item px-3 bg-celeste text-muted text-center rounded-3 border-0">
-                            Aún no hay platillos registrados en el menú.
-                        </li>`;
+                    listaPlatillos.innerHTML = '<li class="list-group-item px-3 bg-celeste text-muted text-center rounded-3 border-0">Menú en construcción 👨‍🍳</li>';
                 }
 
                 const modalElement = document.getElementById('restauranteModal');
@@ -496,6 +508,12 @@ document.addEventListener('click', (e) => {
         const selectPaisPlatillo = document.getElementById('platilloPais');
         selectPaisPlatillo.innerHTML = selectNacionalidad.innerHTML;
         selectPaisPlatillo.options[0].text = "Selecciona el origen...";
+
+        const selectCategoria = document.getElementById('platilloCategoria');
+        selectCategoria.innerHTML = '<option value="" selected disabled>Elige una categoría...</option>';
+        document.querySelectorAll('.filtro-categoria').forEach(checkbox => {
+            selectCategoria.innerHTML += `<option value="${checkbox.value}">${checkbox.nextElementSibling.innerText}</option>`;
+        });
     }
 });
 
@@ -509,6 +527,7 @@ if (formAgregarPlatillo) {
         const descripcion = document.getElementById('platilloDesc').value;
         const precio = document.getElementById('platilloPrecio').value;
         const codigo_iso = document.getElementById('platilloPais').value;
+        const categoria_id = document.getElementById('platilloCategoria').value;
 
         const mensajeDiv = document.getElementById('msgPlatillo');
         mensajeDiv.innerText = "Guardando...";
@@ -518,7 +537,8 @@ if (formAgregarPlatillo) {
             const response = await fetch(`http://localhost:3000/api/restaurantes/${restauranteId}/menu`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nombre, descripcion, precio, codigo_iso })
+                body: JSON.stringify({ nombre, descripcion, precio, codigo_iso, categoria_id })
+
             });
 
             if (response.ok) {
@@ -543,10 +563,10 @@ if (formAgregarPlatillo) {
 
 document.addEventListener('click', async (e) => {
     const btnFavorito = e.target.closest('#btnFavorito');
-    
+
     if (btnFavorito) {
         const token = localStorage.getItem('hogaranza_token');
-        
+
         if (!token) {
             alert("Debes iniciar sesión para agregar favoritos.");
             window.location.href = 'login.html';
@@ -556,12 +576,12 @@ document.addEventListener('click', async (e) => {
         const restauranteId = btnFavorito.getAttribute('data-id');
         const iconoCorazon = document.getElementById('iconoCorazon');
         const esFavoritoActualmente = iconoCorazon.innerText === '❤︎⁠';
-        
+
         btnFavorito.disabled = true;
 
         try {
             const metodo = esFavoritoActualmente ? 'DELETE' : 'POST';
-            
+
             const response = await fetch(`http://localhost:3000/api/usuarios/favoritos/${restauranteId}`, {
                 method: metodo,
                 headers: {
@@ -587,7 +607,7 @@ document.addEventListener('click', async (e) => {
             console.error("Error al procesar favorito:", error);
             alert("Error de conexión.");
         } finally {
-            btnFavorito.disabled = false; 
+            btnFavorito.disabled = false;
         }
     }
 });
