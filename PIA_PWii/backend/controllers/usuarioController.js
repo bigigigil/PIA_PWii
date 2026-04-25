@@ -2,7 +2,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 //const { Usuario } = require('../models');
 const logger = require('../utils/logger');
-const { Usuario, Pais, Restaurante, Resena} = require('../models');
+const { Usuario, Pais, Restaurante, Resena, Platillo, FavoritoPlatillo,
+    FavoritoPais } = require('../models');
 
 exports.registrarUsuario = async (req, res) => {
     try {
@@ -101,14 +102,24 @@ exports.obtenerPerfil = async (req, res) => {
                     model: Restaurante,
                     as: 'restaurantesFavoritos',
                     attributes: ['id', 'nombre'],
-                    through: {
-                        attributes: [] 
-                    }
+                    through: { attributes: [] }
                 },
                 {
                     model: Resena,
                     as: 'resenas',
-                    include: [{ model: Restaurante, attributes: ['nombre', 'sede_id'] }] 
+                    include: [{ model: Restaurante, attributes: ['nombre', 'sede_id'] }]
+                },
+                {
+                    model: Platillo,
+                    as: 'platillosFavoritos',
+                    attributes: ['id', 'nombre'],
+                    through: { attributes: [] }
+                },
+                {
+                    model: Pais,
+                    as: 'paisesFavoritos',
+                    attributes: ['id', 'codigo_iso', 'nombre'],
+                    through: { attributes: [] }
                 }
             ]
         });
@@ -124,7 +135,9 @@ exports.obtenerPerfil = async (req, res) => {
             pais_id: usuario.pais_id,
             codigo_iso: usuario.pais ? usuario.pais.codigo_iso : null,
             restaurantesFavoritos: usuario.restaurantesFavoritos || [],
-            resenas: usuario.resenas || []
+            resenas: usuario.resenas || [],
+            platillosFavoritos: usuario.platillosFavoritos || [],
+            paisesFavoritos: usuario.paisesFavoritos || []
         });
 
     } catch (error) {
@@ -203,5 +216,97 @@ exports.eliminarFavorito = async (req, res) => {
     } catch (error) {
         logger.error(`Error al eliminar favorito: ${error.message}`);
         res.status(500).json({ error: 'Error al eliminar favorito' });
+    }
+};
+
+
+exports.eliminarPlatilloFavorito = async (req, res) => {
+    try {
+        const usuarioId = req.usuario.id;
+        const platilloId = req.params.platilloId;
+
+        const usuario = await Usuario.findByPk(usuarioId);
+        const platillo = await Platillo.findByPk(platilloId);
+
+        if (!usuario || !platillo) return res.status(404).json({ error: 'Usuario o platillo no encontrado' });
+
+        await usuario.removePlatillosFavorito(platillo);
+        res.status(200).json({ mensaje: 'Platillo eliminado de favoritos' });
+    } catch (error) {
+        logger.error(`Error al eliminar platillo favorito: ${error.message}`);
+        res.status(500).json({ error: 'Error al eliminar favorito' });
+    }
+};
+
+exports.agregarPaisFavorito = async (req, res) => {
+    try {
+        const usuarioId = req.usuario.id;
+        const paisId = req.params.paisId;
+
+        const usuario = await Usuario.findByPk(usuarioId);
+        const pais = await Pais.findByPk(paisId);
+
+        if (!usuario || !pais) return res.status(404).json({ error: 'Usuario o país no encontrado' });
+
+        await usuario.addPaisesFavorito(pais);
+        res.status(200).json({ mensaje: 'País agregado a favoritos' });
+    } catch (error) {
+        logger.error(`Error al agregar país favorito: ${error.message}`);
+        res.status(500).json({ error: 'Error al agregar favorito' });
+    }
+};
+
+exports.eliminarPaisFavorito = async (req, res) => {
+    try {
+        const usuarioId = req.usuario.id;
+        const paisId = req.params.paisId;
+
+        const usuario = await Usuario.findByPk(usuarioId);
+        const pais = await Pais.findByPk(paisId);
+
+        if (!usuario || !pais) return res.status(404).json({ error: 'Usuario o país no encontrado' });
+
+        await usuario.removePaisesFavorito(pais);
+        res.status(200).json({ mensaje: 'País eliminado de favoritos' });
+    } catch (error) {
+        logger.error(`Error al eliminar país favorito: ${error.message}`);
+        res.status(500).json({ error: 'Error al eliminar favorito' });
+    }
+};
+
+exports.agregarPlatilloFavorito = async (req, res) => {
+    try {
+        const usuarioId = req.usuario.id;
+        const platilloId = req.params.platilloId;
+
+        await FavoritoPlatillo.findOrCreate({
+            where: { usuario_id: usuarioId, platillo_id: platilloId }
+        });
+
+        res.status(200).json({ mensaje: 'Platillo agregado a favoritos' });
+    } catch (error) {
+        logger.error(`Error al agregar platillo favorito: ${error.message}`);
+        res.status(500).json({ error: 'Error al agregar platillo' });
+    }
+};
+
+exports.agregarPaisFavoritoPorIso = async (req, res) => {
+    try {
+        const usuarioId = req.usuario.id;
+        const codigoIso = req.params.iso;
+
+        const pais = await Pais.findOne({ where: { codigo_iso: codigoIso } });
+        if (!pais) {
+            return res.status(404).json({ error: 'País no encontrado en la base de datos' });
+        }
+
+        await FavoritoPais.findOrCreate({
+            where: { usuario_id: usuarioId, pais_id: pais.id }
+        });
+
+        res.status(200).json({ mensaje: 'País agregado a favoritos' });
+    } catch (error) {
+        logger.error(`Error al agregar país favorito: ${error.message}`);
+        res.status(500).json({ error: 'Error al agregar país' });
     }
 };

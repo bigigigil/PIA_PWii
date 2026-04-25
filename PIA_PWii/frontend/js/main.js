@@ -34,6 +34,42 @@ async function cargarPaises() {
     }
 }
 
+async function cargarOpcionesBuscadoresPerfil() {
+    if (!document.getElementById('datalist-platillos')) return;
+
+    try {
+        const resPlatillos = await fetch('http://localhost:3000/api/platillos');
+        if (resPlatillos.ok) {
+            const platillos = await resPlatillos.json();
+            const dlPlatillos = document.getElementById('datalist-platillos');
+            dlPlatillos.innerHTML = '';
+            platillos.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.nombre;
+                option.setAttribute('data-id', p.id);
+                dlPlatillos.appendChild(option);
+            });
+        }
+
+        const resPaises = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,translations');
+        if (resPaises.ok) {
+            const paises = await resPaises.json();
+            paises.sort((a, b) => a.translations.spa.common.localeCompare(b.translations.spa.common));
+            const dlPaises = document.getElementById('datalist-paises');
+            dlPaises.innerHTML = '';
+            
+            paises.forEach(pais => {
+                const option = document.createElement('option');
+                option.value = pais.translations.spa.common;
+                option.setAttribute('data-iso', pais.cca2);
+                dlPaises.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error("Error cargando opciones de buscadores:", error);
+    }
+}
+
 async function cargarCategorias() {
     const contenedor = document.getElementById('contenedor-categorias');
     if (!contenedor) return;
@@ -98,6 +134,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await cargarPaises();
     await cargarCategorias();
+    cargarOpcionesBuscadoresPerfil();
 
     const token = localStorage.getItem('hogaranza_token');
     const mensajePerfil = document.getElementById('mensajePerfil');
@@ -121,6 +158,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const usuario = await response.json();
                 const bandera = document.getElementById('displayBandera');
                 const listaRestaurantes = document.getElementById('lista-restaurantes-favoritos');
+                const listaPlatillosPerfil = document.getElementById('lista-platillos-favoritos');
+                const listaPaisesPerfil = document.getElementById('lista-paises-favoritos');
 
                 if (listaRestaurantes) {
                     listaRestaurantes.innerHTML = '';
@@ -133,7 +172,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <strong class="text-dark">${index + 1}. ${restaurante.nombre}</strong><br>
                             <small class="text-muted">ID: ${restaurante.id}</small> 
                         </div>
-                        <button class="btn btn-sm btn-outline-primary rounded-pill">Ver</button>
+                        <a href="index.html?restaurante=${restaurante.id}" class="btn btn-sm btn-outline-primary rounded-pill">Ver</a>
                     </li>
                 `;
                         });
@@ -142,27 +181,116 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 }
 
+                if (listaPlatillosPerfil) {
+                    listaPlatillosPerfil.innerHTML = '';
+                    if (usuario.platillosFavoritos && usuario.platillosFavoritos.length > 0) {
+                        usuario.platillosFavoritos.forEach((platillo, index) => {
+                            listaPlatillosPerfil.innerHTML += `
+                            <li class="list-group-item bg-celeste d-flex justify-content-between align-items-center item-lista">
+                                <div><strong class="text-dark">${index + 1}. ${platillo.nombre}</strong></div>
+                                <a href="index.html?q=${encodeURIComponent(platillo.nombre)}" class="btn btn-sm btn-outline-primary rounded-pill">Buscar</a>
+                            </li>`;
+                        });
+                    } else {
+                        listaPlatillosPerfil.innerHTML = '<li class="list-group-item bg-celeste text-muted text-center small">Aún no tienes platillos favoritos.</li>';
+                    }
+                }
+
+                if (listaPaisesPerfil) {
+                    listaPaisesPerfil.innerHTML = '';
+                    if (usuario.paisesFavoritos && usuario.paisesFavoritos.length > 0) {
+                        usuario.paisesFavoritos.forEach((p) => {
+                            listaPaisesPerfil.innerHTML += `
+                            <li class="list-group-item bg-amarillo d-flex justify-content-between align-items-center item-lista">
+                                <div class="d-flex align-items-center">
+                                    <img src="https://flagsapi.com/${p.codigo_iso}/flat/24.png" class="me-2" alt="${p.codigo_iso}">
+                                    <strong class="text-dark">${p.nombre}</strong>
+                                </div>
+                                <a href="index.html?pais=${p.codigo_iso}" class="btn btn-sm btn-outline-primary rounded-pill">Explorar</a>
+                            </li>`;
+                        });
+                    } else {
+                        listaPaisesPerfil.innerHTML = '<li class="list-group-item bg-amarillo text-muted text-center small">Aún no tienes gastronomías favoritas.</li>';
+                    }
+                }
 
                 if (bandera && usuario.codigo_iso) {
                     bandera.src = `https://flagsapi.com/${usuario.codigo_iso}/flat/24.png`;
                 }
-              
+
+                const btnAgregarPlatillo = document.getElementById('btn-agregar-platillo-perfil');
+                if (btnAgregarPlatillo) {
+                    btnAgregarPlatillo.addEventListener('click', async () => {
+                        const inputVal = document.getElementById('buscador-platillos-perfil').value;
+                        const dl = document.getElementById('datalist-platillos');
+                        const option = Array.from(dl.options).find(opt => opt.value === inputVal);
+                        
+                        if (!option) {
+                            alert("Por favor selecciona un platillo de la lista.");
+                            return;
+                        }
+
+                        const platilloId = option.getAttribute('data-id');
+                        try {
+                            const res = await fetch(`http://localhost:3000/api/usuarios/favoritos/platillos/${platilloId}`, {
+                                method: 'POST',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            if (res.ok) {
+                                document.getElementById('buscador-platillos-perfil').value = '';
+                                window.location.reload(); 
+                            } else {
+                                alert("Error al agregar platillo.");
+                            }
+                        } catch(e) { console.error(e); }
+                    });
+                }
+
+                const btnAgregarPais = document.getElementById('btn-agregar-pais-perfil');
+                if (btnAgregarPais) {
+                    btnAgregarPais.addEventListener('click', async () => {
+                        const inputVal = document.getElementById('buscador-paises-perfil').value;
+                        const dl = document.getElementById('datalist-paises');
+                        const option = Array.from(dl.options).find(opt => opt.value === inputVal);
+                        
+                        if (!option) {
+                            alert("Por favor selecciona un país de la lista.");
+                            return;
+                        }
+
+                        const codigoIso = option.getAttribute('data-iso');
+                        
+                        try {
+                            const res = await fetch(`http://localhost:3000/api/usuarios/favoritos/paises/iso/${codigoIso}`, {
+                                method: 'POST',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            
+                            if (res.ok) {
+                                document.getElementById('buscador-paises-perfil').value = '';
+                                window.location.reload();
+                            } else {
+                                alert("Error al agregar país.");
+                            }
+                        } catch(e) { console.error(e); }
+                    });
+                }
                 const contenedorUltima = document.getElementById('contenedor-ultima-resena');
                 const contenedorTodas = document.getElementById('contenedor-todas-resenas');
                 const btnVerTodas = document.getElementById('btnVerTodasResenas');
 
                 if (contenedorUltima && usuario.resenas) {
-                    
+
                     if (usuario.resenas.length === 0) {
                         contenedorUltima.innerHTML = '<p class="text-muted text-center italic">Aún no has escrito ninguna reseña.</p>';
                     } else {
                         const resenasOrdenadas = usuario.resenas.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                        
+
                         const crearTarjetaResena = (resena) => {
                             const fecha = new Date(resena.createdAt).toLocaleDateString('es-MX');
                             const nombreRestaurante = resena.Restaurante ? resena.Restaurante.nombre : 'Restaurante Desconocido';
                             const estrellas = ' ★'.repeat(resena.calificacion_estrellas);
-                            
+
                             return `
                                 <div class="card border-0 rounded-4 mb-3 shadow-sm overflow-hidden">
                                     <div class="card-body p-4 bg-white border-start border-5" style="border-color: #fbc02d !important;">
@@ -185,7 +313,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                         if (resenasOrdenadas.length > 1) {
                             btnVerTodas.classList.remove('d-none');
-                            
+
                             let htmlTodas = '<h5 class="fw-bold text-secondary mb-3">Historial de Reseñas</h5>';
                             for (let i = 1; i < resenasOrdenadas.length; i++) {
                                 htmlTodas += crearTarjetaResena(resenasOrdenadas[i]);
@@ -270,7 +398,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Error verificando sesión:', error);
         }
     }
-
+    const urlParams = new URLSearchParams(window.location.search);
+    const restauranteDestacado = urlParams.get('restaurante');
+    const paisFiltro = urlParams.get('pais');
+    const busquedaFiltro = urlParams.get('q');
+    if (paisFiltro) {
+        setTimeout(() => {
+            const selectNacionalidad = document.getElementById('nacionalidad');
+            if (selectNacionalidad) selectNacionalidad.value = paisFiltro;
+        }, 500);
+    }
+    if (busquedaFiltro) {
+        const inputSearch = document.getElementById('site-search');
+        if (inputSearch) inputSearch.value = busquedaFiltro;
+    }
     const contenedorMapa = document.getElementById('map');
     if (contenedorMapa && typeof maplibregl !== 'undefined') {
         map = new maplibregl.Map({
@@ -420,6 +561,34 @@ async function cargarPinesEnMapa(url) {
         });
 
         if (restaurantes.length > 0) {
+            map.flyTo({
+                center: [restaurantes[restaurantes.length - 1].longitud, restaurantes[restaurantes.length - 1].latitud],
+                zoom: 13
+            });
+        }
+        restaurantes.forEach(restaurante => {
+            const coordenadas = [restaurante.longitud, restaurante.latitud];
+
+            const marcador = new maplibregl.Marker({ color: "#1a4d8c" })
+                .setLngLat(coordenadas)
+                .addTo(map);
+
+            marcador.getElement().style.cursor = 'pointer';
+
+            marcador.getElement().addEventListener('click', clickEvent);
+            marcadoresActuales.push(marcador);
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const restauranteDestacado = urlParams.get('restaurante');
+
+            if (restauranteDestacado && restaurante.id.toString() === restauranteDestacado) {
+                map.flyTo({ center: coordenadas, zoom: 15 });
+                setTimeout(clickEvent, 500); 
+            }
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (restaurantes.length > 0 && !urlParams.get('restaurante')) {
             map.flyTo({
                 center: [restaurantes[restaurantes.length - 1].longitud, restaurantes[restaurantes.length - 1].latitud],
                 zoom: 13

@@ -20,7 +20,7 @@ app.use('/api/categorias', categoriaRoutes);
 
 
 app.use('/api/usuarios', require('./routes/usuarioRoutes'));
-
+app.use('/api/platillos', require('./routes/platilloRoutes'));
 
 
 app.get('/api/prueba', (req, res) => {

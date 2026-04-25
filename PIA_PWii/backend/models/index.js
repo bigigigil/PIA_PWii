@@ -9,6 +9,9 @@ const Categoria = require('./categoria');
 const Pais = require('./pais');
 const FavoritoRestaurante = require('./favorito_restaurante');
 const Resena = require('./resena');
+const FavoritoPlatillo = require('./favorito_platillo');
+const FavoritoPais = require('./favorito_pais');
+
 
 Restaurante.belongsTo(Sede, { foreignKey: 'sede_id', as: 'sede' });
 Sede.hasMany(Restaurante, { foreignKey: 'sede_id' });
@@ -33,6 +36,12 @@ Resena.belongsTo(Restaurante, { foreignKey: 'restaurante_id' });
 Usuario.hasMany(Resena, { foreignKey: 'usuario_id', as: 'resenas' });
 Resena.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'autor' });
 
+Usuario.belongsToMany(Platillo, { through: FavoritoPlatillo, foreignKey: 'usuario_id', as: 'platillosFavoritos' });
+Platillo.belongsToMany(Usuario, { through: FavoritoPlatillo, foreignKey: 'platillo_id', as: 'seguidores' });
+
+Usuario.belongsToMany(Pais, { through: FavoritoPais, foreignKey: 'usuario_id', as: 'paisesFavoritos' });
+Pais.belongsToMany(Usuario, { through: FavoritoPais, foreignKey: 'pais_id', as: 'seguidores' });
+
 const db = {
     sequelize,
     Usuario,
@@ -43,7 +52,9 @@ const db = {
     MenuRestaurante,
     Categoria,
     Pais,
-    Resena
+    Resena,
+    FavoritoPlatillo,
+    FavoritoPais
 };
 
 module.exports = db;

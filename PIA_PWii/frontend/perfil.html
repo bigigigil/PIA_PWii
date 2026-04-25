@@ -60,60 +60,47 @@
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="card border-0  rounded-4 h-100 bg-celeste card-top">
+          <div class="col-md-4">
+                <div class="card border-0 rounded-4 h-100 bg-celeste card-top">
                     <div class="card-body p-4">
-                        <h5 class="fw-bold text-primary mb-3">Platillos (๑ᵔ⤙ᵔ๑)</h5>
-                        <ul class="list-group list-group-flush rounded-3 ">
-                            <li
-                                class="list-group-item bg-celeste d-flex justify-content-between align-items-center item-lista">
-                                <div><strong class="text-dark">1. Sincronizadas</strong></div>
-                                <button class="btn btn-sm btn-outline-primary rounded-pill">Ver</button>
-                            </li>
-                            <li
-                                class="list-group-item bg-celeste d-flex justify-content-between align-items-center item-lista">
-                                <div><strong class="text-dark">2. Tacos al Pastor</strong></div>
-                                <button class="btn btn-sm btn-outline-primary rounded-pill">Ver</button>
-                            </li>
-                            <li
-                                class="list-group-item bg-celeste d-flex justify-content-between align-items-center item-lista">
-                                <div><strong class="text-dark">3. Calabacitas Rellenas</strong></div>
-                                <button class="btn btn-sm btn-outline-primary rounded-pill">Ver</button>
-                            </li>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-primary mb-0">Platillos (๑ᵔ⤙ᵔ๑)</h5>
+                            <button class="btn btn-sm btn-outline-primary rounded-circle fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBuscadorPlatillos" style="width: 32px; height: 32px;">+</button>
+                        </div>
+                        
+                        <div class="collapse mb-3" id="collapseBuscadorPlatillos">
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control" id="buscador-platillos-perfil" placeholder="Buscar platillo..." list="datalist-platillos">
+                                <datalist id="datalist-platillos"></datalist>
+                                <button class="btn btn-primary" type="button" id="btn-agregar-platillo-perfil">Añadir</button>
+                            </div>
+                        </div>
+
+                        <ul id="lista-platillos-favoritos" class="list-group list-group-flush rounded-3">
+                            <li class="list-group-item bg-celeste text-muted text-center small">Cargando platillos...</li>
                         </ul>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-4">
-                <div class="card border-0  rounded-4 h-100 bg-amarillo card-top">
+                <div class="card border-0 rounded-4 h-100 bg-amarillo card-top">
                     <div class="card-body p-4">
-                        <h5 class="fw-bold text-primary mb-3">Gastronomías (｡˃ ᵕ ˂ )⸝ ♨</h5>
-                        <ul class="list-group list-group-flush rounded-3 ">
-                            <li
-                                class="list-group-item bg-amarillo d-flex justify-content-between align-items-center item-lista">
-                                <div class="d-flex align-items-center">
-                                    <img src="https://flagsapi.com/MX/flat/24.png" class="me-2" alt="MX">
-                                    <strong class="text-dark">México</strong>
-                                </div>
-                                <button class="btn btn-sm btn-outline-primary rounded-pill">Explorar</button>
-                            </li>
-                            <li
-                                class="list-group-item bg-amarillo d-flex justify-content-between align-items-center item-lista">
-                                <div class="d-flex align-items-center">
-                                    <img src="https://flagsapi.com/AR/flat/24.png" class="me-2" alt="AR">
-                                    <strong class="text-dark">Argentina</strong>
-                                </div>
-                                <button class="btn btn-sm btn-outline-primary rounded-pill">Explorar</button>
-                            </li>
-                            <li
-                                class="list-group-item bg-amarillo d-flex justify-content-between align-items-center item-lista">
-                                <div class="d-flex align-items-center">
-                                    <img src="https://flagsapi.com/IT/flat/24.png" class="me-2" alt="IT">
-                                    <strong class="text-dark">Italia</strong>
-                                </div>
-                                <button class="btn btn-sm btn-outline-primary rounded-pill">Explorar</button>
-                            </li>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-primary mb-0">Gastronomías (｡˃ ᵕ ˂ )⸝ ♨</h5>
+                            <button class="btn btn-sm btn-outline-primary rounded-circle fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBuscadorPaises" style="width: 32px; height: 32px;">+</button>
+                        </div>
+
+                        <div class="collapse mb-3" id="collapseBuscadorPaises">
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control" id="buscador-paises-perfil" placeholder="Buscar país..." list="datalist-paises">
+                                <datalist id="datalist-paises"></datalist>
+                                <button class="btn btn-primary" type="button" id="btn-agregar-pais-perfil">Añadir</button>
+                            </div>
+                        </div>
+
+                        <ul id="lista-paises-favoritos" class="list-group list-group-flush rounded-3">
+                            <li class="list-group-item bg-amarillo text-muted text-center small">Cargando gastronomías...</li>
                         </ul>
                     </div>
                 </div>
@@ -131,7 +118,7 @@
 
         <div class="text-center mt-3">
             <button id="btnVerTodasResenas" class="btn btn-outline-primary rounded-pill px-4 fw-bold d-none">
-              ver mas...
+                ver mas...
             </button>
         </div>
 
