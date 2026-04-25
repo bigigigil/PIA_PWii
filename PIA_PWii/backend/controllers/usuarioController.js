@@ -1,9 +1,8 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 //const { Usuario } = require('../models');
-const Usuario = require('../models/Usuario');
 const logger = require('../utils/logger');
-const Pais = require('../models/pais');
+const { Usuario, Pais, Restaurante } = require('../models');
 
 exports.registrarUsuario = async (req, res) => {
     try {
@@ -12,7 +11,7 @@ exports.registrarUsuario = async (req, res) => {
         if (!nombre || !email || !password) {
             return res.status(400).json({ error: 'Todos los campos son obligatorios' });
         }
-        
+
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             return res.status(400).json({ error: 'Formato de correo inválido' });
@@ -42,7 +41,7 @@ exports.registrarUsuario = async (req, res) => {
             nombre,
             email,
             password_hash,
-            pais_id: paisIdReal 
+            pais_id: paisIdReal
         });
 
         res.status(201).json({ mensaje: 'Usuario registrado exitosamente' });
@@ -88,15 +87,25 @@ exports.loginUsuario = async (req, res) => {
     }
 };
 
-
 exports.obtenerPerfil = async (req, res) => {
     try {
         const usuario = await Usuario.findByPk(req.usuario.id, {
             attributes: ['id', 'nombre', 'email', 'pais_id'],
-            include: {
-                model: Pais,
-                attributes: ['codigo_iso', 'nombre']
-            }
+            include: [
+                {
+                    model: Pais,
+                    as: 'pais',
+                    attributes: ['codigo_iso', 'nombre']
+                },
+                {
+                    model: Restaurante,
+                    as: 'restaurantesFavoritos',
+                    attributes: ['id', 'nombre'],
+                    through: {
+                        attributes: [] 
+                    }
+                }
+            ]
         });
 
         if (!usuario) {
@@ -108,7 +117,8 @@ exports.obtenerPerfil = async (req, res) => {
             nombre: usuario.nombre,
             email: usuario.email,
             pais_id: usuario.pais_id,
-            codigo_iso: usuario.Pai?.codigo_iso || null
+            codigo_iso: usuario.pais ? usuario.pais.codigo_iso : null,
+            restaurantesFavoritos: usuario.restaurantesFavoritos || []
         });
 
     } catch (error) {
@@ -143,5 +153,49 @@ exports.actualizarPerfil = async (req, res) => {
     } catch (error) {
         logger.error(`Error al actualizar perfil: ${error.message}`);
         res.status(500).json({ error: 'Error interno al actualizar perfil' });
+    }
+};
+
+exports.agregarFavorito = async (req, res) => {
+    try {
+        const usuarioId = req.usuario.id;
+        const restauranteId = req.params.restauranteId;
+
+        const usuario = await Usuario.findByPk(usuarioId);
+        const restaurante = await Restaurante.findByPk(restauranteId);
+
+        if (!usuario || !restaurante) {
+            return res.status(404).json({ error: 'Usuario o restaurante no encontrado' });
+        }
+
+        await usuario.addRestaurantesFavorito(restaurante);
+
+        res.status(200).json({ mensaje: 'Restaurante agregado a favoritos' });
+
+    } catch (error) {
+        logger.error(`Error al agregar favorito: ${error.message}`);
+        res.status(500).json({ error: 'Error al agregar favorito' });
+    }
+};
+
+exports.eliminarFavorito = async (req, res) => {
+    try {
+        const usuarioId = req.usuario.id;
+        const restauranteId = req.params.restauranteId;
+
+        const usuario = await Usuario.findByPk(usuarioId);
+        const restaurante = await Restaurante.findByPk(restauranteId);
+
+        if (!usuario || !restaurante) {
+            return res.status(404).json({ error: 'Usuario o restaurante no encontrado' });
+        }
+
+        await usuario.removeRestaurantesFavorito(restaurante);
+
+        res.status(200).json({ mensaje: 'Restaurante eliminado de favoritos' });
+
+    } catch (error) {
+        logger.error(`Error al eliminar favorito: ${error.message}`);
+        res.status(500).json({ error: 'Error al eliminar favorito' });
     }
 };

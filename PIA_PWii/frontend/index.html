@@ -22,12 +22,12 @@
 
                 <div class="flex-grow-1">
                     <label class="form-label small fw-bold text-primary">Elige el país:</label>
-                    <select id="nacionalidad" class="form-select mb-4 border-primary shadow-sm rounded-3">
+                    <select id="nacionalidad" class="form-select mb-4 border-primary  rounded-3">
                     </select>
 
                     <label class="form-label small fw-bold text-primary">Preferencia de Sabor</label>
                     <label class="form-label small fw-bold text-primary mt-3">Categorías de Comida</label>
-                    <div class="bg-amarillo-pastel p-3 rounded-3 border mb-3 shadow-sm">
+                    <div class="bg-amarillo-pastel p-3 rounded-3 border mb-3 ">
 
                         <div id="contenedor-categorias" style="max-height: 150px; overflow-y: auto;">
                             <span class="text-muted small">Cargando categorías...</span>
@@ -45,7 +45,7 @@
 
                     </div>
 
-                    <button class="btn btn-primary w-100 py-2 shadow-sm rounded-pill fw-bold" onclick="buscarPuentes()">
+                    <button class="btn btn-primary w-100 py-2  rounded-pill fw-bold" onclick="buscarPuentes()">
                         Ver Restaurantes Cercanos
                     </button>
                 </div>
@@ -88,31 +88,32 @@
         </div>
     </div>
 
-    <div class="modal fade" id="restauranteModal" tabindex="-1" aria-hidden="true">
+   <div class="modal fade" id="restauranteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 border-0 shadow">
                 <div style="height: 150px; background-color: #1a4d8c; border-radius: 1rem 1rem 0 0;"
-                    class="position-relative">
-                    <span id="modal-rating"
-                        class="badge bg-warning text-dark position-absolute bottom-0 start-0 m-3 shadow"></span>
+                    class="position-relative d-flex justify-content-between p-3">
+                    
+                    <button type="button" class="btn-close btn-close-white align-self-start" data-bs-dismiss="modal" aria-label="Close"></button>
+
+                    <button id="btnFavorito" class="btn btn-light rounded-circle  d-flex align-items-center justify-content-center align-self-start" style="width: 40px; height: 40px; border: none; background: rgba(255, 255, 255, 0.8);">
+                        <span class="fs-4" id="iconoCorazon">♡</span>
+                    </button>
+
+                    <span id="modal-rating" class="badge bg-warning text-dark position-absolute bottom-0 start-0 m-3 shadow"></span>
                 </div>
+
                 <div class="modal-body p-4 bg-amarillo-pastel">
-                    <h4 id="modal-nombre" class="fw-bold text-primary mb-1">tacos "el Pro" </h4>
-                    <img src="https://flagsapi.com/MX/flat/24.png" class="me-2" alt="MX">
-
-                    <p id="modal-ubicacion" class="text-muted small mb-3"> Ubicación</p>
+                    <h4 id="modal-nombre" class="fw-bold text-primary mb-1">Cargando...</h4>
 
                     <h6 class="fw-bold mt-3">Platillos Destacados:</h6>
-                    <ul id="modal-lista-platillos" class="list-group list-group-flush mb-3 rounded-3 shadow-sm">
-                    </ul>
-                    <h6 class="fw-bold mt-3">Platillos Destacados:</h6>
-                    <ul id="modal-lista-platillos" class="list-group list-group-flush mb-3 rounded-3 shadow-sm">
-                    </ul>
+                    <ul id="modal-lista-platillos" class="list-group list-group-flush mb-3 rounded-3 ">
+                        </ul>
 
                     <button class="btn btn-success w-100 rounded-pill mb-2 fw-bold" id="btnAbrirAgregarPlatillo">
                         + Añadir Platillo al Menú
                     </button>
-                    <button class="btn btn-outline-primary w-100 rounded-pill">calificar</button>
+                    <button class="btn btn-outline-primary w-100 rounded-pill">Calificar</button>
                 </div>
             </div>
         </div>
@@ -141,15 +142,15 @@
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-primary">Sede</label>
                             <select class="form-select rounded-pill border-primary" id="addSede" required>
-                                <option value="1">Ciudad de México</option>
-                                <option value="2">Monterrey</option>
-                                <option value="3">Guadalajara</option>
+                                <option value="1">CDMX</option>
+                                <option value="2">Nuevo León</option>
+                                <option value="3">Jalisco</option>
                             </select>
                         </div>
                         <div id="addMensaje" class="text-center mt-2"></div>
                     </div>
                     <div class="modal-footer border-0 bg-amarillo-pastel" style="border-radius: 0 0 1rem 1rem;">
-                        <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold shadow-sm">Guardar
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold ">Guardar
                             Restaurante</button>
                     </div>
                 </form>
@@ -197,9 +198,9 @@
                         <div id="msgPlatillo" class="text-center mt-2"></div>
                     </div>
                     <div class="modal-footer border-0 bg-amarillo-pastel" style="border-radius: 0 0 1rem 1rem;">
-                        <button type="button" class="btn btn-secondary rounded-pill fw-bold shadow-sm"
+                        <button type="button" class="btn btn-secondary rounded-pill fw-bold "
                             data-bs-target="#restauranteModal" data-bs-toggle="modal">Volver</button>
-                        <button type="submit" class="btn btn-success rounded-pill fw-bold shadow-sm px-4">Guardar
+                        <button type="submit" class="btn btn-success rounded-pill fw-bold  px-4">Guardar
                             Platillo</button>
                     </div>
                 </form>

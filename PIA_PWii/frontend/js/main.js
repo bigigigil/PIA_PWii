@@ -42,7 +42,7 @@ async function cargarCategorias() {
         const respuesta = await fetch('http://localhost:3000/api/categorias');
         const categorias = await respuesta.json();
 
-        contenedor.innerHTML = ''; // Limpiamos el texto de "Cargando..."
+        contenedor.innerHTML = '';
 
         categorias.forEach(cat => {
             contenedor.innerHTML += `
@@ -120,6 +120,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (response.ok) {
                 const usuario = await response.json();
                 const bandera = document.getElementById('displayBandera');
+                const listaRestaurantes = document.getElementById('lista-restaurantes-favoritos');
+
+                if (listaRestaurantes) {
+                    listaRestaurantes.innerHTML = ''; 
+
+                    if (usuario.restaurantesFavoritos && usuario.restaurantesFavoritos.length > 0) {
+                        usuario.restaurantesFavoritos.forEach((restaurante, index) => {
+                            listaRestaurantes.innerHTML += `
+                    <li class="list-group-item bg-amarillo d-flex justify-content-between align-items-center item-lista">
+                        <div>
+                            <strong class="text-dark">${index + 1}. ${restaurante.nombre}</strong><br>
+                            <small class="text-muted">ID: ${restaurante.id}</small> 
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary rounded-pill">Ver</button>
+                    </li>
+                `;
+                        });
+                    } else {
+                        listaRestaurantes.innerHTML = '<li class="list-group-item bg-amarillo text-muted text-center small">Aún no tienes favoritos.</li>';
+                    }
+                }
+
 
                 if (bandera && usuario.codigo_iso) {
                     bandera.src = `https://flagsapi.com/${usuario.codigo_iso}/flat/24.png`;
@@ -254,14 +276,37 @@ async function cargarPinesEnMapa(url) {
 
             marcador.getElement().style.cursor = 'pointer';
 
-            marcador.getElement().addEventListener('click', () => {
+           marcador.getElement().addEventListener('click', async () => {
 
                 document.getElementById('modal-nombre').innerText = restaurante.nombre;
                 document.getElementById('btnAbrirAgregarPlatillo').setAttribute('data-id', restaurante.id);
+                
+                const btnFavorito = document.getElementById('btnFavorito');
+                btnFavorito.setAttribute('data-id', restaurante.id);
+                const iconoCorazon = document.getElementById('iconoCorazon');
+                iconoCorazon.innerText = '♡'; 
+                btnFavorito.classList.remove('btn-danger');
+                btnFavorito.classList.add('btn-light');
 
-                document.getElementById('modal-ubicacion').innerText = "📍 Sede de la App";
-                document.getElementById('modal-rating').innerText = "⭐ Nuevo";
+                const token = localStorage.getItem('hogaranza_token');
+                if (token) {
+                    try {
+                        const resPerfil = await fetch('http://localhost:3000/api/usuarios/perfil', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (resPerfil.ok) {
+                            const usuario = await resPerfil.json();
+                            const esFavorito = usuario.restaurantesFavoritos.some(fav => fav.id === restaurante.id);
+                            if (esFavorito) {
+                                iconoCorazon.innerText = '❤︎⁠';
+                                btnFavorito.classList.remove('btn-light');
+                                btnFavorito.classList.add('btn-danger');
+                            }
+                        }
+                    } catch (e) { console.error("Error verificando favoritos", e); }
+                }
 
+               
                 const listaPlatillos = document.getElementById('modal-lista-platillos');
                 listaPlatillos.innerHTML = '';
 
@@ -273,7 +318,7 @@ async function cargarPinesEnMapa(url) {
                             : 'Precio variable';
 
                         const li = document.createElement('li');
-                        li.className = 'list-group-item px-3 bg-celeste d-flex justify-content-between align-items-center mb-2 shadow-sm rounded-3 border-0';
+                        li.className = 'list-group-item px-3 bg-celeste d-flex justify-content-between align-items-center mb-2  rounded-3 border-0';
 
                         li.innerHTML = `
                             <div>
@@ -495,3 +540,54 @@ if (formAgregarPlatillo) {
         }
     });
 }
+
+document.addEventListener('click', async (e) => {
+    const btnFavorito = e.target.closest('#btnFavorito');
+    
+    if (btnFavorito) {
+        const token = localStorage.getItem('hogaranza_token');
+        
+        if (!token) {
+            alert("Debes iniciar sesión para agregar favoritos.");
+            window.location.href = 'login.html';
+            return;
+        }
+
+        const restauranteId = btnFavorito.getAttribute('data-id');
+        const iconoCorazon = document.getElementById('iconoCorazon');
+        const esFavoritoActualmente = iconoCorazon.innerText === '❤︎⁠';
+        
+        btnFavorito.disabled = true;
+
+        try {
+            const metodo = esFavoritoActualmente ? 'DELETE' : 'POST';
+            
+            const response = await fetch(`http://localhost:3000/api/usuarios/favoritos/${restauranteId}`, {
+                method: metodo,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                if (esFavoritoActualmente) {
+                    iconoCorazon.innerText = '♡';
+                    btnFavorito.classList.remove('btn-danger');
+                    btnFavorito.classList.add('btn-light');
+                } else {
+                    iconoCorazon.innerText = '❤︎⁠';
+                    btnFavorito.classList.remove('btn-light');
+                    btnFavorito.classList.add('btn-danger');
+                }
+            } else {
+                alert("Hubo un problema al actualizar favoritos.");
+            }
+        } catch (error) {
+            console.error("Error al procesar favorito:", error);
+            alert("Error de conexión.");
+        } finally {
+            btnFavorito.disabled = false; 
+        }
+    }
+});
