@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 //const { Usuario } = require('../models');
 const logger = require('../utils/logger');
-const { Usuario, Pais, Restaurante } = require('../models');
+const { Usuario, Pais, Restaurante, Resena} = require('../models');
 
 exports.registrarUsuario = async (req, res) => {
     try {
@@ -104,6 +104,11 @@ exports.obtenerPerfil = async (req, res) => {
                     through: {
                         attributes: [] 
                     }
+                },
+                {
+                    model: Resena,
+                    as: 'resenas',
+                    include: [{ model: Restaurante, attributes: ['nombre', 'sede_id'] }] 
                 }
             ]
         });
@@ -118,7 +123,8 @@ exports.obtenerPerfil = async (req, res) => {
             email: usuario.email,
             pais_id: usuario.pais_id,
             codigo_iso: usuario.pais ? usuario.pais.codigo_iso : null,
-            restaurantesFavoritos: usuario.restaurantesFavoritos || []
+            restaurantesFavoritos: usuario.restaurantesFavoritos || [],
+            resenas: usuario.resenas || []
         });
 
     } catch (error) {

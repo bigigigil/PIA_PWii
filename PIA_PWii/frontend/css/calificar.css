@@ -1,0 +1,57 @@
+:root {
+    --azul-principal: #1a4d8c;
+    --azul-claro: #e3f2fd;
+    --celeste-flotante: #d1ecf1;
+    --amarillo-pastel: #fff9c4;
+    --amarillo-acento: #fcd190;
+    --blanco-fondo: #f8f9fa;
+}
+
+.calificar {
+    display: flex;
+    justify-content: center;
+    transform: rotateY(180deg);
+    margin: 10px 0 20px 0;
+}
+
+.calificar input {
+    display: none;
+}
+
+.calificar label {
+    display: block;
+    cursor: pointer;
+    width: 20px;
+    padding-left: 10px;
+}
+
+.calificar label::before {
+    content: "\f005";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: relative;
+    display: block;
+    font-size: 20px;
+    color: var(--amarillo-acento);
+}
+
+.calificar label::after {
+    content: "\f005";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: absolute;
+    top: 0;
+    opacity: 0;
+    display: block;
+    font-size: 20px;
+    color: var(--azul-principal);
+    transition: 0.5s;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.calificar label:hover::after,
+.calificar label:hover~label::after,
+.calificar input:checked~label::after {
+    opacity: 1;
+
+}

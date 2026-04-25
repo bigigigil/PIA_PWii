@@ -1,8 +1,7 @@
 const { Op } = require('sequelize');
-const { Restaurante, Platillo, MenuRestaurante, Pais, Categoria } = require('../models');
-
+const { Restaurante, Platillo, MenuRestaurante, Pais, Categoria, Resena, Usuario } = require('../models');
 const obtenerTodos = async (req, res) => {
-    try {  
+    try {
         const restaurantes = await Restaurante.findAll({
             include: [{
                 model: Platillo,
@@ -13,7 +12,13 @@ const obtenerTodos = async (req, res) => {
                     { model: Pais, as: 'pais', attributes: ['codigo_iso'] },
                     { model: Categoria, as: 'categorias', attributes: ['id', 'nombre'] }
                 ]
-            }]
+            }, {
+                model: Resena,
+                as: 'resenas',
+                attributes: ['calificacion_estrellas', 'comentario'],
+                include: [{ model: Usuario, as: 'autor', attributes: ['nombre'] }]
+            }
+            ]
         });
         res.json(restaurantes);
     } catch (error) {
@@ -40,9 +45,9 @@ const filtrarRestaurantes = async (req, res) => {
         }
 
         let includeCategorias = {
-             model: Categoria, 
-             as: 'categorias', 
-             attributes: ['id', 'nombre'] 
+            model: Categoria,
+            as: 'categorias',
+            attributes: ['id', 'nombre']
         };
 
         if (categorias) {
@@ -70,7 +75,7 @@ const filtrarRestaurantes = async (req, res) => {
                         as: 'pais',
                         attributes: ['codigo_iso']
                     },
-                    includeCategorias 
+                    includeCategorias
                 ]
             }]
         });
@@ -130,9 +135,30 @@ const agregarPlatillo = async (req, res) => {
     }
 };
 
+const agregarResena = async (req, res) => {
+    try {
+        const restaurante_id = req.params.id;
+        const usuario_id = req.usuario.id; 
+        const { calificacion_estrellas, comentario } = req.body;
+
+        const nuevaResena = await Resena.create({
+            usuario_id,
+            restaurante_id,
+            calificacion_estrellas,
+            comentario
+        });
+
+        res.status(201).json({ message: "¡Reseña guardada con éxito!" });
+    } catch (error) {
+        console.error('Error al guardar reseña:', error);
+        res.status(500).json({ error: 'Error al guardar la reseña' });
+    }
+};
+
 module.exports = {
     obtenerTodos,
     filtrarRestaurantes,
     crearRestaurante,
-    agregarPlatillo
+    agregarPlatillo,
+    agregarResena
 };

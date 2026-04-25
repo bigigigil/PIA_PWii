@@ -146,6 +146,64 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (bandera && usuario.codigo_iso) {
                     bandera.src = `https://flagsapi.com/${usuario.codigo_iso}/flat/24.png`;
                 }
+              
+                const contenedorUltima = document.getElementById('contenedor-ultima-resena');
+                const contenedorTodas = document.getElementById('contenedor-todas-resenas');
+                const btnVerTodas = document.getElementById('btnVerTodasResenas');
+
+                if (contenedorUltima && usuario.resenas) {
+                    
+                    if (usuario.resenas.length === 0) {
+                        contenedorUltima.innerHTML = '<p class="text-muted text-center italic">Aún no has escrito ninguna reseña.</p>';
+                    } else {
+                        const resenasOrdenadas = usuario.resenas.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                        
+                        const crearTarjetaResena = (resena) => {
+                            const fecha = new Date(resena.createdAt).toLocaleDateString('es-MX');
+                            const nombreRestaurante = resena.Restaurante ? resena.Restaurante.nombre : 'Restaurante Desconocido';
+                            const estrellas = ' ★'.repeat(resena.calificacion_estrellas);
+                            
+                            return `
+                                <div class="card border-0 rounded-4 mb-3 shadow-sm overflow-hidden">
+                                    <div class="card-body p-4 bg-white border-start border-5" style="border-color: #fbc02d !important;">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h5 class="fw-bold text-dark mb-1">${nombreRestaurante}</h5>
+                                                <p class="text-muted small mb-0">${fecha}</p>
+                                            </div>
+                                            <span class="badge bg-warning text-dark fs-6 px-3 py-2 rounded-pill shadow-sm">
+                                                ${estrellas} ${resena.calificacion_estrellas}/5
+                                            </span>
+                                        </div>
+                                        <p class="mt-3 mb-2 text-secondary fst-italic">"${resena.comentario}"</p>
+                                    </div>
+                                </div>
+                            `;
+                        };
+
+                        contenedorUltima.innerHTML = crearTarjetaResena(resenasOrdenadas[0]);
+
+                        if (resenasOrdenadas.length > 1) {
+                            btnVerTodas.classList.remove('d-none');
+                            
+                            let htmlTodas = '<h5 class="fw-bold text-secondary mb-3">Historial de Reseñas</h5>';
+                            for (let i = 1; i < resenasOrdenadas.length; i++) {
+                                htmlTodas += crearTarjetaResena(resenasOrdenadas[i]);
+                            }
+                            contenedorTodas.innerHTML = htmlTodas;
+
+                            btnVerTodas.addEventListener('click', () => {
+                                if (contenedorTodas.classList.contains('d-none')) {
+                                    contenedorTodas.classList.remove('d-none');
+                                    btnVerTodas.innerText = 'Ocultar reseñas ⬆';
+                                } else {
+                                    contenedorTodas.classList.add('d-none');
+                                    btnVerTodas.innerText = 'Ver todas mis reseñas ⬇';
+                                }
+                            });
+                        }
+                    }
+                }
 
                 const enlacePerfil = document.getElementById('enlacePerfil');
                 if (enlacePerfil) {
@@ -309,9 +367,11 @@ async function cargarPinesEnMapa(url) {
 
                 const listaPlatillos = document.getElementById('modal-lista-platillos');
                 listaPlatillos.innerHTML = '';
-
+                let textoRating = " ★ Nuevo";
                 if (restaurante.menu && restaurante.menu.length > 0) {
-
+                    const suma = restaurante.resenas.reduce((acc, curr) => acc + curr.calificacion_estrellas, 0);
+                    const promedio = (suma / restaurante.resenas.length).toFixed(1);
+                    textoRating = ` ★ ${promedio} (${restaurante.resenas.length} reseñas)`;
                     const menuAgrupado = {};
                     restaurante.menu.forEach(platillo => {
                         const nombreCategoria = (platillo.categorias && platillo.categorias.length > 0)
@@ -548,7 +608,7 @@ if (formAgregarPlatillo) {
                 formAgregarPlatillo.reset();
 
                 cargarPinesEnMapa('http://localhost:3000/api/restaurantes');
-                alert('🍽️ ¡Platillo agregado al menú!');
+                alert('🍽️¡Platillo agregado al menú!');
             } else {
                 const data = await response.json();
                 mensajeDiv.innerText = data.error || "Error al guardar";
@@ -611,3 +671,67 @@ document.addEventListener('click', async (e) => {
         }
     }
 });
+
+document.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'btnAbrirAgregarResena') {
+        const token = localStorage.getItem('hogaranza_token');
+        if (!token) {
+            alert("Debes iniciar sesión para calificar.");
+            window.location.href = 'login.html';
+            return;
+        }
+
+        const restauranteId = document.getElementById('btnAbrirAgregarPlatillo').getAttribute('data-id');
+        document.getElementById('resenaRestauranteId').value = restauranteId;
+
+        bootstrap.Modal.getInstance(document.getElementById('restauranteModal')).hide();
+        new bootstrap.Modal(document.getElementById('agregarResenaModal')).show();
+    }
+});
+
+
+const formAgregarResena = document.getElementById('formAgregarResena');
+if (formAgregarResena) {
+    formAgregarResena.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const token = localStorage.getItem('hogaranza_token');
+        const restauranteId = document.getElementById('resenaRestauranteId').value;
+
+        const estrellaSeleccionada = document.querySelector('input[name="rating"]:checked');
+        const calificacion_estrellas = estrellaSeleccionada ? estrellaSeleccionada.value : null;
+
+        if (!calificacion_estrellas) {
+            document.getElementById('msgResena').innerText = "Por favor selecciona una calificación.";
+            document.getElementById('msgResena').className = "text-danger small fw-bold mt-2";
+            return;
+        }
+
+        const comentario = document.getElementById('resenaComentario').value;
+        const mensajeDiv = document.getElementById('msgResena');
+
+        mensajeDiv.innerText = "Enviando...";
+
+        try {
+            const response = await fetch(`http://localhost:3000/api/restaurantes/${restauranteId}/resenas`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ calificacion_estrellas, comentario })
+            });
+
+            if (response.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('agregarResenaModal')).hide();
+                formAgregarResena.reset();
+                cargarPinesEnMapa('http://localhost:3000/api/restaurantes');
+                alert('٩(ˊᗜˋ*)و₊˚⊹☆¡Gracias por tu reseña!');
+            } else {
+                mensajeDiv.innerText = "Error al guardar reseña";
+            }
+        } catch (error) {
+            mensajeDiv.innerText = "Error de conexión";
+        }
+    });
+}
